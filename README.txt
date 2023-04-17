@@ -9,4 +9,4 @@
    - One sequence per line
    - In the format of NNNNTTTNNNNNNNNNNNNNNNNNNNNNNNNNNN
 
-3. Run the predictor using "python c12a_predictor.py"
+3. Run the predictor using "python c12a_predictor.py <input> <output>". File `sequences.txt` is an example of <intput>

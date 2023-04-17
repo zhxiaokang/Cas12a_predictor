@@ -1,11 +1,15 @@
 import pandas as pd
 import joblib
-from sklearn.ensemble import RandomForestRegressor
+# from sklearn.ensemble import RandomForestRegressor
+import sys
 
 nucleotides = ['A', 'C', 'G', 'T']
 dinucleotides = [i + j for i in nucleotides for j in nucleotides]
 trinucleotides = [i + j + k for i in nucleotides for j in nucleotides for k in nucleotides]
 filename = 'c12a_predictor.sav'
+
+## Load Random Forest model from disk
+predictor = joblib.load(filename)
 
 def gc_content(seq):
     d = len([s for s in seq if s in 'CcGg']) / len(seq) * 100
@@ -42,14 +46,24 @@ def process_sequence(df):
     local_features_df = pd.concat([protospacer_local_df, leftside_local_df, rightside_local_df], axis=1)
     return pd.concat([global_features_df, local_features_df, rolling_gc, protospacer_gc], axis=1)
 
-
-## Load Random Forest model from disk
-predictor = joblib.load(filename)
-
-
 ## Predict the efficiency for each sequence in the file
-for line in open('sequences.txt', 'r'):
-    sequence = line.strip()
-    prediction = predictor.predict(process_sequence(pd.Series([sequence])))
-    print(sequence, prediction[0])
+# Usage: python c12a_predictor.py input output
+# 2 params from command line:
+#   input: the sequences to be predicted. Format: one sequence one line (length 34 bp)
+#   output:
+#       1st col: original sequence
+#       2nd col: predicted indel frequency
 
+# check the input pamaters
+if len(sys.argv) > 2:
+    fn_input = sys.argv[1]
+    fn_output = sys.argv[2]
+
+    with open(fn_input, "r") as fin, open(fn_output, "w") as fout:
+        for line in fin:
+            sequence = line.strip()
+            prediction = predictor.predict(process_sequence(pd.Series([sequence])))
+            fout.write(sequence + " " + str(prediction[0]) + "\n")
+
+else:
+    print("Please provide both the input and output file names")
